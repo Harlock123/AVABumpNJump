@@ -12,7 +12,7 @@ public static class Field
     public const double Step = 1.0 / 60;
     public const double Width = 1024, Height = 768;
     /// <summary>Where on the screen the buggy is.</summary>
-    public const double PlayerY = 590;
+    public const double PlayerY = 650;
 
     /// <summary>The screen y of something a distance along the road, with the buggy at <paramref name="at"/>.</summary>
     public static double ScreenY(double d, double at) => PlayerY - (d - at);
@@ -102,7 +102,7 @@ public sealed class Course
             width = toWidth;
         }
         Add(LegKind.Road, 900, mid, width);
-        double length = 12000 + 1500 * Math.Min(6, number - 1);
+        double length = 18000 + 2200 * Math.Min(6, number - 1);
         int since = 0;
         while (d < length)
         {
@@ -110,9 +110,9 @@ public sealed class Course
             if (since >= 2 && roll < 3 + Math.Min(3, number / 2))
             {
                 // A gap: a straight run up to it, the water, and a straight run on from it.
-                Add(LegKind.Road, 300, mid, width);
-                Add(LegKind.Gap, 170 + rng.NextDouble() * 60 + Math.Min(90, 15 * (number - 1)), mid, width);
-                Add(LegKind.Road, 260, mid, width);
+                Add(LegKind.Road, 420, mid, width);
+                Add(LegKind.Gap, 240 + rng.NextDouble() * 90 + Math.Min(120, 20 * (number - 1)), mid, width);
+                Add(LegKind.Road, 380, mid, width);
                 since = 0;
             }
             else if (roll < 7)
@@ -120,7 +120,7 @@ public sealed class Course
                 // A bend: the road wanders across, narrowing or widening.
                 double toMid = Math.Clamp(mid + (rng.NextDouble() - 0.5) * 360, 300, Field.Width - 300);
                 double toWidth = Math.Clamp(width + (rng.NextDouble() - 0.5) * 200, 260, 480);
-                Add(LegKind.Road, 500 + rng.NextDouble() * 400, toMid, toWidth);
+                Add(LegKind.Road, 750 + rng.NextDouble() * 600, toMid, toWidth);
                 since++;
             }
             else
@@ -128,13 +128,13 @@ public sealed class Course
                 // An island splits the road in two, wider round it.
                 double wide = Math.Min(560, width + 160);
                 Add(LegKind.Road, 250, Math.Clamp(mid, 320, Field.Width - 320), wide);
-                Add(LegKind.Split, 800 + rng.NextDouble() * 300, mid, wide, 160 + rng.NextDouble() * 80);
+                Add(LegKind.Split, 1200 + rng.NextDouble() * 450, mid, wide, 160 + rng.NextDouble() * 80);
                 Add(LegKind.Road, 250, mid, Math.Max(300, width));
                 since++;
             }
         }
-        Add(LegKind.Road, 1400, mid, 420);
-        c.Length = d - 900;
+        Add(LegKind.Road, 1800, mid, 420);
+        c.Length = d - 1200;
         return c;
     }
 }

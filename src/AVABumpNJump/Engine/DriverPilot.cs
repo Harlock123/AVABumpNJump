@@ -12,7 +12,7 @@ public sealed class DriverPilot
     /// <summary>What it is up to, for the probe.</summary>
     public string Doing { get; private set; } = "";
 
-    public const double Cruise = 300;
+    public const double Cruise = 480;
 
     public Controls Decide(GameEngine g)
     {
@@ -29,7 +29,7 @@ public sealed class DriverPilot
         double want = Cruise;
         bool jump = false;
         // A gap ahead: fast enough to clear it, and off at its edge.
-        if (course.NextGap(p.D) is { } gap && gap.D0 - p.D < 900)
+        if (course.NextGap(p.D) is { } gap && gap.D0 - p.D < 1300)
         {
             double needed = (gap.D1 - gap.D0 + 90) / GameEngine.JumpTime;
             want = Math.Max(want, Math.Min(GameEngine.MaxSpeed, needed + 20));
@@ -37,7 +37,7 @@ public sealed class DriverPilot
             Doing = "for the gap";
         }
         else Doing = "driving";
-        double x = Keep(g, p, RoadMiddle(g, p.D + 140, p.X));
+        double x = Keep(g, p, RoadMiddle(g, p.D + 200, p.X));
         // The cars about it.
         foreach (var k in g.Cars.Where(k => !k.Dead && !k.Airborne).OrderBy(k => Math.Abs(k.D - p.D)))
         {
@@ -60,18 +60,18 @@ public sealed class DriverPilot
                 break;
             }
             // In the way ahead and slower: round it (or, close, slow down).
-            if (ahead > 0 && ahead < 220 && Math.Abs(across) < 46 && k.Speed < p.Speed)
+            if (ahead > 0 && ahead < 120 + (p.Speed - k.Speed) * 0.9 && Math.Abs(across) < 46 && k.Speed < p.Speed)
             {
                 var road = course.Road(k.D);
                 var lane = road.OrderBy(r => Math.Abs((r.X0 + r.X1) / 2 - k.X)).FirstOrDefault();
                 double left = k.X - lane.X0, right = lane.X1 - k.X;
                 x = right > left ? k.X + 52 : k.X - 52;
-                if (ahead < 90 && Math.Abs(across) < 36) want = Math.Min(want, k.Speed - 30);
+                if (ahead < 110 && Math.Abs(across) < 36) want = Math.Min(want, k.Speed - 40);
                 Doing = "going round";
                 break;
             }
             // Coming up behind, fast: out of its way.
-            if (ahead < 0 && ahead > -200 && Math.Abs(across) < 40 && k.Speed > p.Speed)
+            if (ahead < 0 && ahead > -260 && Math.Abs(across) < 40 && k.Speed > p.Speed)
             {
                 var road = course.Road(p.D);
                 var lane = road.OrderBy(r => Math.Abs((r.X0 + r.X1) / 2 - p.X)).FirstOrDefault();
@@ -91,7 +91,7 @@ public sealed class DriverPilot
     /// </summary>
     private static double Keep(GameEngine g, Buggy p, double x)
     {
-        foreach (double ahead in new[] { 0.0, 60, 120 })
+        foreach (double ahead in new[] { 0.0, 80, 160 })
         {
             var road = g.Course.Road(p.D + ahead);
             if (road.Count < 2) continue;

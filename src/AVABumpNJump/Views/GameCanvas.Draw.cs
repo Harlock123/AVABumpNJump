@@ -303,7 +303,7 @@ public sealed partial class GameCanvas
         double sp = g.Player.Speed / GameEngine.MaxSpeed;
         dc.DrawRectangle(null, Pen(0xFFFFB04A, 1.5), new Rect(412, 49, 200, 8), 2, 2);
         dc.FillRectangle(Brush(sp > 0.85 ? Red : 0xFFFFB04A), new Rect(414, 51, 196 * sp, 4));
-        Text(dc, $"{g.Player.Speed * 0.36:0} KM/H", new Point(620, 53), 18, 0xFFFFB04A);
+        Text(dc, $"{g.Player.Speed * 0.4:0} KM/H", new Point(620, 53), 18, 0xFFFFB04A);
         int spare = Math.Max(0, g.Lives - (g.Player.Alive ? 1 : 0));
         for (int i = 0; i < Math.Min(spare, 6); i++)
         {

@@ -2,7 +2,7 @@ namespace AVABumpNJump.Engine;
 
 public sealed partial class GameEngine
 {
-    public const double MaxSpeed = 460, Accel = 320, Brake = 520, SteerSpeed = 260, JumpTime = 0.85, JumpMin = 80, BumpPush = 330;
+    public const double MaxSpeed = 700, Accel = 480, Brake = 800, SteerSpeed = 340, JumpTime = 0.85, JumpMin = 120, BumpPush = 420;
     public const double StartSeconds = 2.4, DyingSeconds = 2.4, SafeSeconds = 2.2, ClearSeconds = 3.2, StartD = 200;
     public const int ExtraLifeEvery = 30000, BumpPoints = 500, RacerPoints = 800, CrushPoints = 800, TruckPoints = 1500, PerCarBonus = 200;
 
@@ -25,7 +25,7 @@ public sealed partial class GameEngine
     private double _carIn, _clock;
     private readonly Dictionary<Car, double> _bumped = [];
 
-    public double SpawnEvery => Math.Max(0.8, 1.7 - 0.12 * (Wave - 1));
+    public double SpawnEvery => Math.Max(0.6, 1.3 - 0.1 * (Wave - 1));
 
     private void NewGame()
     {
@@ -44,8 +44,12 @@ public sealed partial class GameEngine
     private void PlaceBuggy(double d)
     {
         var p = Player;
-        // Never over (or right in front of) a gap.
-        if (Course.NextGap(d - 200) is { } gap && gap.D0 - 160 < d) d = Math.Max(0, gap.D0 - 220);
+        // Never over (or too close in front of) a gap: far enough back to get up the speed to clear it.
+        if (Course.NextGap(d - 200) is { } gap)
+        {
+            double need = (gap.D1 - gap.D0 + 90) / JumpTime, runUp = need * need / (2 * Accel) + 160;
+            if (gap.D0 - runUp < d) d = Math.Max(0, gap.D0 - runUp);
+        }
         var road = Course.Road(d);
         p.D = d;
         p.X = road.Count > 0 ? (road[0].X0 + road[^1].X1) / 2 : Field.Width / 2;
@@ -159,12 +163,12 @@ public sealed partial class GameEngine
     /// <summary>Cars join the road ahead (and, from the second stage, hot rods come up from behind), never near a gap.</summary>
     private void Traffic(double dt)
     {
-        if (Calm || Player.D > Course.Length - 700 || (_carIn -= dt) > 0) return;
+        if (Calm || Player.D > Course.Length - 1000 || (_carIn -= dt) > 0) return;
         _carIn = SpawnEvery * (0.7 + _rng.NextDouble() * 0.6);
         var p = Player;
         int roll = _rng.Next(10);
         var kind = Wave >= 2 && roll < 2 ? CarKind.Truck : Wave >= 2 && roll < 4 ? CarKind.Racer : CarKind.Sedan;
-        double d = kind == CarKind.Racer ? p.D - 260 : p.D + 820;
+        double d = kind == CarKind.Racer ? p.D - 300 : p.D + 1050;
         if (Course.NextGap(d - 260) is { } gap && gap.D0 - 260 < d && d < gap.D1 + 120) return;
         var road = Course.Road(d);
         if (road.Count == 0) return;
@@ -172,9 +176,9 @@ public sealed partial class GameEngine
         double frac = 0.2 + _rng.NextDouble() * 0.6;
         double speed = kind switch
         {
-            CarKind.Racer => Math.Min(MaxSpeed - 20, 320 + 15 * Wave + _rng.NextDouble() * 50),
-            CarKind.Truck => 130 + _rng.NextDouble() * 40,
-            _ => 120 + _rng.NextDouble() * 120 + 8 * Wave,
+            CarKind.Racer => Math.Min(MaxSpeed - 30, 520 + 20 * Wave + _rng.NextDouble() * 60),
+            CarKind.Truck => 220 + _rng.NextDouble() * 60,
+            _ => 220 + _rng.NextDouble() * 160 + 12 * Wave,
         };
         Cars.Add(new Car { Kind = kind, D = d, X = lane.X0 + (lane.X1 - lane.X0) * frac, Lane = frac, Speed = speed });
     }
@@ -205,13 +209,13 @@ public sealed partial class GameEngine
                 var lane = road.OrderBy(r => Math.Abs((r.X0 + r.X1) / 2 - k.X)).First();
                 double want = lane.X0 + (lane.X1 - lane.X0) * k.Lane;
                 if (k.Kind == CarKind.Racer && p.Alive && Math.Abs(k.D - p.D) < 160) want = p.X;
-                k.X += Math.Clamp(want - k.X, -110 * dt, 110 * dt);
+                k.X += Math.Clamp(want - k.X, -150 * dt, 150 * dt);
             }
             k.X += k.Vx * dt;
             k.Vx *= 1 - Math.Min(1, 2.2 * dt);
             if (!Course.OnRoad(k.X, k.D, k.Width / 2 - 6)) Wreck(k);
         }
-        Cars.RemoveAll(k => k.Dead || k.D < p.D - 600 || k.D > p.D + 1500);
+        Cars.RemoveAll(k => k.Dead || k.D < p.D - 700 || k.D > p.D + 1800);
     }
 
     /// <summary>A car off the road: wrecked, and worth something if the buggy shoved it there.</summary>
