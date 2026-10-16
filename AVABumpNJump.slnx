@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AVABumpNJump/AVABumpNJump.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AVABumpNJump.Tests/AVABumpNJump.Tests.csproj" />
+  </Folder>
+</Solution>
