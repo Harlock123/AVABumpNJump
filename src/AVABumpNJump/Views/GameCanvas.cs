@@ -9,8 +9,8 @@ using AVABumpNJump.Engine;
 namespace AVABumpNJump.Views;
 
 /// <summary>
-/// The arcade screen: a fixed 1024×768 picture scaled to fit the window: the round's backdrop and
-/// platforms, with the score along the top. Runs the engine from a 60 Hz timer.
+/// The arcade screen: a fixed 1024×768 picture scaled to fit the window: the road seen from above,
+/// scrolling up the screen, with the score along the top. Runs the engine from a 60 Hz timer.
 /// </summary>
 public sealed partial class GameCanvas : Control
 {
